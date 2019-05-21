@@ -1,6 +1,7 @@
 #include "run_loop_impl.hpp"
 
 #include <mbgl/util/platform.hpp>
+#include <mbgl/platform/thread.hpp>
 #include <mbgl/util/thread_local.hpp>
 #include <mbgl/util/thread.hpp>
 #include <mbgl/util/timer.hpp>
@@ -81,8 +82,7 @@ private:
 };
 
 RunLoop::Impl::Impl(RunLoop* runLoop_, RunLoop::Type type) : runLoop(runLoop_) {
-    using namespace mbgl::android;
-    detach = attach_jni_thread(theJVM, &env, platform::getCurrentThreadName());
+    platform::attachThread();
 
     loop = ALooper_prepare(0);
     assert(loop);
@@ -130,8 +130,7 @@ RunLoop::Impl::~Impl() {
 
     ALooper_release(loop);
 
-    using namespace mbgl::android;
-    detach_jni_thread(theJVM, &env, detach);
+    platform::detachThread();
 }
 
 void RunLoop::Impl::wake() {
